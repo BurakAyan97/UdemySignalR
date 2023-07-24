@@ -24,6 +24,9 @@
                 connection.start().then(() => {
                     statusShow();
                     $("#loading").hide();
+
+                    connection.invoke("GetNames");
+
                 }).catch((err) => {
                     console.log(err);
                     setTimeout(() => Start(), 2000)
@@ -54,6 +57,22 @@
             connection.on("ReceiveClientCount", (clientCount) => {
                 $("#clientCount").text(clientCount);
             });
+
+            connection.on("Notify", (countText) => {
+                $("#notify").html(`<div class="alert alert-success">${countText}</div>`)
+            })
+
+            connection.on("Error", (errorText) => {
+                alert(errorText);
+            });
+
+            connection.on("ReceiveNames", (names) => {
+                $("#namesList").empty();
+
+                names.forEach((item, index) => {
+                    $("#namesList").append(`<li class="list-group-item">${item}</li>`)
+                })
+            })
 
             //<--------------------------------------------------Clicks------------------------------------------------------------------->
             //Butona tıklayınca SendName methodunu çalıştırdık
@@ -88,6 +107,7 @@
             </div>
             <div class="clearfix"></div>
         </div>
+        <div id="notify"></div>
     </div>
     <div class="col-md-8 offset-2">
         <ul class="list-group" id="namesList"></ul>
