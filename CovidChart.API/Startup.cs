@@ -1,3 +1,4 @@
+using CovidChart.API.Hubs;
 using CovidChart.API.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -28,10 +29,24 @@ namespace CovidChart.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<CovidService>();
+
             services.AddDbContext<AppDbContext>(opt =>
             {
                 opt.UseSqlServer(Configuration.GetConnectionString("SqlServer"));
             });
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy", builder =>
+                {
+                    builder.WithOrigins("https://localhost:44352").AllowAnyHeader()
+                                                                                                                           .AllowAnyMethod()
+                                                                                                                           .AllowCredentials();
+                });
+            });
+
+            services.AddSignalR();
 
             services.AddControllers();
 
@@ -54,11 +69,12 @@ namespace CovidChart.API
             app.UseHttpsRedirection();
 
             app.UseRouting();
-
+            app.UseCors("CorsPolicy");
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<CovidHub>("/CovidHub");
                 endpoints.MapControllers();
             });
         }
